@@ -4,7 +4,7 @@ resource "aws_ecs_cluster" "my_cluster" {
 
 resource "aws_ecs_task_definition" "my_task" {
   family                   = "my-task-family"
-  network_mode             = "awsvpc"
+  network_mode             = "aws_vpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
   memory                   = "512"
@@ -13,7 +13,7 @@ resource "aws_ecs_task_definition" "my_task" {
 
   container_definitions = jsonencode([{
     name  = "my-ecs-container"
-    image = "anastasiyaohal/clockbox:latest" 
+    image = "atyranazar/clockbox:latest" 
   }])
 }
 
@@ -24,7 +24,7 @@ resource "aws_ecs_service" "my_service" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets = ["subnet-0287356ba65c47876"] 
+    subnets = ["subnet-01057da043ad39ece"] 
   }
 }
 
