@@ -28,8 +28,8 @@ resource "aws_ecs_service" "my_service" {
   }
 }
 
-resource "aws_iam_role" "ecs_execution_role" {
-  name = "ecs_execution_role"
+resource "aws_iam_role1" "ecs_execution_role1" {
+  name = "ecs_execution_role1"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
