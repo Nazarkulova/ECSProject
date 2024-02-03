@@ -107,9 +107,6 @@ resource "aws_cloudwatch_log_group" "log-group" {
     Environment = var.app_environment
   }
 }
-data "template_file" "env_vars" {
-  template = file("env_vars.json")
-}
 
 resource "aws_ecs_task_definition" "aws-ecs-task" {
   family = "${var.app_name}-task"
@@ -120,7 +117,7 @@ resource "aws_ecs_task_definition" "aws-ecs-task" {
       "name": "${var.app_name}-${var.app_environment}-container",
       "image": "anastasiyaohal/clockbox:latest",
       "entryPoint": [],
-      "environment": ${data.template_file.env_vars.rendered},
+      "environment": "production"
       "essential": true,
       "logConfiguration": {
         "logDriver": "awslogs",
