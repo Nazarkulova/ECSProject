@@ -14,7 +14,7 @@ resource "aws_ecs_task_definition" "my_task" {
 
   container_definitions = jsonencode([{
     name  = "my-container"
-    image = "anastasiyaohal/clockbox:latest" 
+    image = "atyranazar/clockbox:latest" 
     essential = true
       portMappings = [
         {
@@ -32,7 +32,7 @@ resource "aws_ecs_service" "my_service" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets = ["subnet-0287356ba65c47876"] 
+    subnets = ["subnet-01057da043ad39ece"] 
   }
 }
 
