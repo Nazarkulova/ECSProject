@@ -32,7 +32,7 @@ resource "aws_ecs_service" "my_service" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets = ["subnet-01057da043ad39ece"] 
+    subnets = ["subnet-01057da043ad39ece", "subnet-097cb2e0df59d9c3c"] 
   }
 }
 
