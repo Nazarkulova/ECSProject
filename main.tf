@@ -123,7 +123,7 @@ resource "aws_ecs_task_definition" "aws-ecs-task" {
         "logDriver": "awslogs",
         "options": {
           "awslogs-group": "${aws_cloudwatch_log_group.log-group.id}",
-          "awslogs-region": "${var.aws_region}",
+          "awslogs-region": "us-east-1",
           "awslogs-stream-prefix": "${var.app_name}-${var.app_environment}"
         }
       },
