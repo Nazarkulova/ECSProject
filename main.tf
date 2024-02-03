@@ -14,7 +14,7 @@ resource "aws_ecs_task_definition" "my_task" {
 
   container_definitions = jsonencode([{
     name  = "my-container"
-    image = "atyranazar/clockbox:latest" 
+    image = "atyranazar/alpine:latest" 
     essential = true
       portMappings = [
         {
