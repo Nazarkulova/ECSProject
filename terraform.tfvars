@@ -1,6 +1,6 @@
-aws_region        = "${{ secrets.AWS_DEFAULT_REGION }}"
-aws_access_key    = "${{ secrets.AWS_ACCESS_KEY_ID }}"
-aws_secret_key    = "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+aws_region        = "${ secrets.AWS_DEFAULT_REGION }"
+aws_access_key    = "${ secrets.AWS_ACCESS_KEY_ID }"
+aws_secret_key    = "${ secrets.AWS_SECRET_ACCESS_KEY }"
 
 # these are zones and subnets examples
 availability_zones = ["us-east-1a", "us-east-1b"]
