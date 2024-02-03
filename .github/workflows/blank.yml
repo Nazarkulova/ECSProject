@@ -19,8 +19,7 @@ jobs:
           echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
           echo "AWS_DEFAULT_REGION=${{ secrets.AWS_DEFAULT_REGION }}" >> $GITHUB_ENV
         
-      - name: Terraform Init
-        run: terraform init
+     
 
       - name: Terraform Destroy
         run: terraform destroy 
