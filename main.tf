@@ -63,15 +63,8 @@ resource "aws_route_table_association" "public" {
   subnet_id      = element(aws_subnet.public.*.id, count.index)
   route_table_id = aws_route_table.public.id
 }
-# ecr.tf | Elastic Container Repository
 
-resource "aws_ecr_repository" "aws-ecr" {
-  name = "${var.app_name}-${var.app_environment}-ecr"
-  tags = {
-    Name        = "${var.app_name}-ecr"
-    Environment = var.app_environment
-  }
-}
+
 
 # iam.tf | IAM Role Policies
 
@@ -125,7 +118,7 @@ resource "aws_ecs_task_definition" "aws-ecs-task" {
   [
     {
       "name": "${var.app_name}-${var.app_environment}-container",
-      "image": "${aws_ecr_repository.aws-ecr.repository_url}:latest",
+      "image": "anastasiyaohal/clockbox:latest",
       "entryPoint": [],
       "environment": ${data.template_file.env_vars.rendered},
       "essential": true,
