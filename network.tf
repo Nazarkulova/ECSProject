@@ -1,156 +1,156 @@
-resource "aws_vpc" "app_vpc" {
+resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
-}
-
-resource "aws_subnet" "public_d" {
-  vpc_id            = aws_vpc.app_vpc.id
-  cidr_block        = "10.0.1.0/25"
-  availability_zone = "us-east-1d"
 
   tags = {
-    "Name" = "public | us-east-1d"
+    Name = "main"
   }
 }
 
-resource "aws_subnet" "private_d" {
-  vpc_id            = aws_vpc.app_vpc.id
-  cidr_block        = "10.0.2.0/25"
-  availability_zone = "us-east-1d"
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.main.id
 
   tags = {
-    "Name" = "private | us-east-1d"
+    Name = "igw"
   }
 }
 
-resource "aws_subnet" "public_e" {
-  vpc_id            = aws_vpc.app_vpc.id
-  cidr_block        = "10.0.1.128/25"
-  availability_zone = "us-east-1e"
+resource "aws_subnet" "private-us-east-1a" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.0.0/19"
+  availability_zone = "us-east-1a"
 
   tags = {
-    "Name" = "public | us-east-1e"
+    "Name"                            = "private-us-east-1a"
+    "kubernetes.io/role/internal-elb" = "1"
+    "kubernetes.io/cluster/demo"      = "owned"
   }
 }
 
-resource "aws_subnet" "private_e" {
-  vpc_id            = aws_vpc.app_vpc.id
-  cidr_block        = "10.0.2.128/25"
-  availability_zone = "us-east-1e"
+resource "aws_subnet" "private-us-east-1b" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.32.0/19"
+  availability_zone = "us-east-1b"
 
   tags = {
-    "Name" = "private | us-east-1e"
+    "Name"                            = "private-us-east-1b"
+    "kubernetes.io/role/internal-elb" = "1"
+    "kubernetes.io/cluster/demo"      = "owned"
   }
 }
 
-resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.app_vpc.id
+resource "aws_subnet" "public-us-east-1a" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "10.0.64.0/19"
+  availability_zone       = "us-east-1a"
+  map_public_ip_on_launch = true
+
   tags = {
-    "Name" = "public"
+    "Name"                       = "public-us-east-1a"
+    "kubernetes.io/role/elb"     = "1"
+    "kubernetes.io/cluster/demo" = "owned"
   }
 }
 
-resource "aws_route_table" "private" {
-  vpc_id = aws_vpc.app_vpc.id
+resource "aws_subnet" "public-us-east-1b" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "10.0.96.0/19"
+  availability_zone       = "us-east-1b"
+  map_public_ip_on_launch = true
+
   tags = {
-    "Name" = "private"
+    "Name"                       = "public-us-east-1b"
+    "kubernetes.io/role/elb"     = "1"
+    "kubernetes.io/cluster/demo" = "owned"
   }
-}
-
-resource "aws_route_table_association" "public_d_subnet" {
-  subnet_id      = aws_subnet.public_d.id
-  route_table_id = aws_route_table.public.id
-}
-
-resource "aws_route_table_association" "private_d_subnet" {
-  subnet_id      = aws_subnet.private_d.id
-  route_table_id = aws_route_table.private.id
-}
-
-resource "aws_route_table_association" "public_e_subnet" {
-  subnet_id      = aws_subnet.public_e.id
-  route_table_id = aws_route_table.public.id
-}
-
-resource "aws_route_table_association" "private_e_subnet" {
-  subnet_id      = aws_subnet.private_e.id
-  route_table_id = aws_route_table.private.id
 }
 
 resource "aws_eip" "nat" {
   vpc = true
+
+  tags = {
+    Name = "nat"
+  }
 }
 
-resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.app_vpc.id
-}
-
-resource "aws_nat_gateway" "ngw" {
-  subnet_id     = aws_subnet.public_d.id
+resource "aws_nat_gateway" "nat" {
   allocation_id = aws_eip.nat.id
+  subnet_id     = aws_subnet.public-us-east-1a.id
+
+  tags = {
+    Name = "nat"
+  }
 
   depends_on = [aws_internet_gateway.igw]
 }
 
-resource "aws_route" "public_igw" {
-  route_table_id         = aws_route_table.public.id
-  destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_internet_gateway.igw.id
-}
+resource "aws_route_table" "private" {
+  vpc_id = aws_vpc.main.id
 
-resource "aws_route" "private_ngw" {
-  route_table_id         = aws_route_table.private.id
-  destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = aws_nat_gateway.ngw.id
-}
+  route = [
+    {
+      cidr_block                 = "0.0.0.0/0"
+      nat_gateway_id             = aws_nat_gateway.nat.id
+      carrier_gateway_id         = ""
+      destination_prefix_list_id = ""
+      egress_only_gateway_id     = ""
+      gateway_id                 = ""
+      instance_id                = ""
+      ipv6_cidr_block            = ""
+      local_gateway_id           = ""
+      network_interface_id       = ""
+      transit_gateway_id         = ""
+      vpc_endpoint_id            = ""
+      vpc_peering_connection_id  = ""
+    },
+  ]
 
-resource "aws_security_group" "http" {
-  name        = "http"
-  description = "HTTP traffic"
-  vpc_id      = aws_vpc.app_vpc.id
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "TCP"
-    cidr_blocks = ["0.0.0.0/0"]
+  tags = {
+    Name = "private"
   }
 }
 
-resource "aws_security_group" "https" {
-  name        = "https"
-  description = "HTTPS traffic"
-  vpc_id      = aws_vpc.app_vpc.id
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
 
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "TCP"
-    cidr_blocks = ["0.0.0.0/0"]
+  route = [
+    {
+      cidr_block                 = "0.0.0.0/0"
+      gateway_id                 = aws_internet_gateway.igw.id
+      nat_gateway_id             = ""
+      carrier_gateway_id         = ""
+      destination_prefix_list_id = ""
+      egress_only_gateway_id     = ""
+      instance_id                = ""
+      ipv6_cidr_block            = ""
+      local_gateway_id           = ""
+      network_interface_id       = ""
+      transit_gateway_id         = ""
+      vpc_endpoint_id            = ""
+      vpc_peering_connection_id  = ""
+    },
+  ]
+
+  tags = {
+    Name = "public"
   }
 }
 
-resource "aws_security_group" "egress_all" {
-  name        = "egress-all"
-  description = "Allow all outbound traffic"
-  vpc_id      = aws_vpc.app_vpc.id
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+resource "aws_route_table_association" "private-us-east-1a" {
+  subnet_id      = aws_subnet.private-us-east-1a.id
+  route_table_id = aws_route_table.private.id
 }
 
-resource "aws_security_group" "ingress_api" {
-  name        = "ingress-api"
-  description = "Allow ingress to API"
-  vpc_id      = aws_vpc.app_vpc.id
+resource "aws_route_table_association" "private-us-east-1b" {
+  subnet_id      = aws_subnet.private-us-east-1b.id
+  route_table_id = aws_route_table.private.id
+}
 
-  ingress {
-    from_port   = 3000
-    to_port     = 3000
-    protocol    = "TCP"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+resource "aws_route_table_association" "public-us-east-1a" {
+  subnet_id      = aws_subnet.public-us-east-1a.id
+  route_table_id = aws_route_table.public.id
+}
+
+resource "aws_route_table_association" "public-us-east-1b" {
+  subnet_id      = aws_subnet.public-us-east-1b.id
+  route_table_id = aws_route_table.public.id
 }
