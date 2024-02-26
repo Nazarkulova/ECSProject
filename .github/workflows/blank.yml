@@ -25,3 +25,5 @@ jobs:
 
       - name: Terraform Apply
         run: terraform apply -auto-approve
+      - name: Output kubeconfig
+        run: terraform output kubeconfig > kubeconfig.yaml
